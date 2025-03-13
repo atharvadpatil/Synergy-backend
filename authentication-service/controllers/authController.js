@@ -5,6 +5,22 @@ const User = require("../models/User");
 const dotenv = require("dotenv");
 dotenv.config();
 
+const generateAccessToken = (user) => {
+  return jwt.sign(
+      { id: user.id, email: user.email }, 
+      process.env.ACCESS_TOKEN_SECRET,
+      { expiresIn: "1h" }
+  );
+};
+
+const generateRefreshToken = (user) => {
+  return jwt.sign(
+      { id: user.id, email: user.email }, 
+      process.env.REFRESH_TOKEN_SECRET,
+      { expiresIn: "7d" }
+  );
+};
+
 passport.use(
   new GoogleStrategy(
     {
@@ -47,18 +63,66 @@ exports.googleCallback = passport.authenticate("google", {
   session: false,
 });
 
-exports.generateJWT = (req, res) => {
+exports.generateJWT = async (req, res) => {
   try{
     const user = req.user;
   
-    // Generate JWT token
-    const token = jwt.sign({ id: user.id, email: user.email }, process.env.JWT_SECRET, {
-      expiresIn: "1h",
+    const accessToken = generateAccessToken(user);
+    const refreshToken = generateRefreshToken(user);
+
+    user.refreshToken = refreshToken;
+    await user.save();
+
+    // Set refresh token in HTTP-only cookie
+    res.cookie("refreshToken", refreshToken, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production",
+      sameSite: "Strict",
+      maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
+    });
+
+    const {name, email, avatar} = user;
+    const sendUser = {name, email, avatar};
+
+    res.json({
+      message: "Login successful",
+      accessToken,
+      user: sendUser,
     });
   
-    res.json({ token, user });
   } catch (err) {
     console.error('JWT Error:', err);
     throw new Error('Error generating token');
+  }
+};
+
+exports.refreshAccessToken = async (req, res) => {
+  try {
+      const refreshToken = req.cookies.refreshToken; // Get refresh token from cookies
+
+      if (!refreshToken) {
+          return res.status(401).json({ message: "Refresh token missing" });
+      }
+
+      // Verify Refresh Token
+      jwt.verify(refreshToken, process.env.REFRESH_TOKEN_SECRET, async (err, decodedToken) => {
+          if (err) {
+              return res.status(403).json({ message: "Invalid refresh token" });
+          }
+
+          // Find user in DB
+          const user = await User.findById(decodedToken.id);
+          if (!user || user.refreshToken !== refreshToken) {
+              return res.status(403).json({ message: "Invalid refresh token" });
+          }
+
+          // Generate new access token
+          const newAccessToken = generateAccessToken(user);
+          res.json({ accessToken: newAccessToken });
+      });
+
+  } catch (error) {
+      console.error(error);
+      res.status(500).json({ message: "Internal server error" });
   }
 };
