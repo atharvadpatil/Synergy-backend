@@ -84,11 +84,8 @@ exports.generateJWT = async (req, res) => {
     const {name, email, avatar} = user;
     const sendUser = {name, email, avatar};
 
-    res.json({
-      message: "Login successful",
-      accessToken,
-      user: sendUser,
-    });
+    const encodedUser = encodeURIComponent(JSON.stringify(sendUser));
+    return res.redirect(`${process.env.FRONTEND_URL}/?token=${accessToken}&user=${encodedUser}`);
   
   } catch (err) {
     console.error('JWT Error:', err);
