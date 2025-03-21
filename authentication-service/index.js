@@ -4,6 +4,7 @@ const cors = require("cors");
 const dotenv = require("dotenv");
 const connectDB = require("./config/db");
 const authRoutes = require("./routes/auth");
+const cookieParser = require("cookie-parser");
 
 dotenv.config();
 
@@ -21,6 +22,7 @@ app.use(cors({
     credentials: true, // Allow cookies and authorization headers
 }));
 
+app.use(cookieParser());
 app.use(express.json());
 app.use(passport.initialize());
 
