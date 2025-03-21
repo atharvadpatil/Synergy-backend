@@ -104,12 +104,14 @@ exports.refreshAccessToken = async (req, res) => {
       // Verify Refresh Token
       jwt.verify(refreshToken, process.env.REFRESH_TOKEN_SECRET, async (err, decodedToken) => {
           if (err) {
+              res.clearCookie("refreshToken");
               return res.status(403).json({ message: "Invalid refresh token" });
           }
 
           // Find user in DB
           const user = await User.findById(decodedToken.id);
           if (!user || user.refreshToken !== refreshToken) {
+              res.clearCookie("refreshToken");
               return res.status(403).json({ message: "Invalid refresh token" });
           }
 
