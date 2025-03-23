@@ -59,7 +59,7 @@ exports.googleLogin = passport.authenticate("google", {
 });
 
 exports.googleCallback = passport.authenticate("google", {
-  failureRedirect: "/auth/google",
+  failureRedirect: "/api/auth/google",
   session: false,
 });
 

@@ -18,7 +18,8 @@ const app = express();
 
 //Middleware
 app.use(cors({
-    origin: "http://localhost:5173", // Allow frontend to access backend
+    origin: ["http://localhost:5173", "http://localhost"], // Allow frontend to access backend
+    allowedHeaders: ['Content-Type', 'Authorization'],
     credentials: true, // Allow cookies and authorization headers
 }));
 
@@ -27,7 +28,7 @@ app.use(express.json());
 app.use(passport.initialize());
 
 // Routes
-app.use("/auth", authRoutes);
+app.use("/api/auth", authRoutes);
 
 
 //start the server
