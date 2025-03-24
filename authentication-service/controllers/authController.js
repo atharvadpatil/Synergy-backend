@@ -81,8 +81,8 @@ exports.generateJWT = async (req, res) => {
       maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
     });
 
-    const {name, email, avatar} = user;
-    const sendUser = {name, email, avatar};
+    const {id, name, email, avatar} = user;
+    const sendUser = {id, name, email, avatar};
 
     const encodedUser = encodeURIComponent(JSON.stringify(sendUser));
     return res.redirect(`${process.env.FRONTEND_URL}/?token=${accessToken}&user=${encodedUser}`);
