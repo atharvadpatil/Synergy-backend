@@ -3,7 +3,7 @@ const cors = require("cors");
 const dotenv = require("dotenv");
 const connectDB = require("./config/db");
 const validateToken = require("./middlewares/validateToken");
-
+const colabRoutes = require('./routes/colab');
 dotenv.config();
 
 // Connect to MongoDB
@@ -17,7 +17,9 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 app.use(validateToken);
+app.use(express.urlencoded({ extended: true }))
 
+app.use('/api/colab/workspace', colabRoutes);
 
 
 //start the server
