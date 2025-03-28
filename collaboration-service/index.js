@@ -10,7 +10,7 @@ dotenv.config();
 connectDB();
 
 //Initialize app
-const PORT = 3002;
+const PORT = process.env.COLAB_SERVICE_PORT || 3002;
 const app = express();
 
 //Middleware
@@ -24,5 +24,5 @@ app.use('/api/colab/workspace', colabRoutes);
 
 //start the server
 app.listen(PORT, () => {
-    console.log(`Authentication Service is running on http://localhost:${PORT}`);
+    console.log(`Collaboration Service is running on http://localhost:${PORT}`);
 });

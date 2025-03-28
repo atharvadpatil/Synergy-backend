@@ -15,7 +15,7 @@ dotenv.config();
 connectDB();
 
 //Initialize app
-const PORT = 3001;
+const PORT = process.env.AUTH_SERVICE_PORT || 3001;
 const app = express();
 
 //Middleware
@@ -40,6 +40,6 @@ app.listen(PORT, () => {
 
 // Start gRPC server
 // "0.0.0.0:50051" -> listen on all available network interfaces on port 50051
-gRPCServer.bindAsync("0.0.0.0:50051", grpc.ServerCredentials.createInsecure(), () => {
+gRPCServer.bindAsync(`0.0.0.0:${process.env.GRPC_SERVER_PORT}`, grpc.ServerCredentials.createInsecure(), () => {
   console.log("Auth Service gRPC Server running on port 50051");
 });
