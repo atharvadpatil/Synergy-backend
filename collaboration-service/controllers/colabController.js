@@ -1,6 +1,6 @@
 const Workspace = require('../models/workspace');
 const { nanoid } = require('nanoid');
-
+const authClient = require("../grpcClient");
 
 exports.createWorkspace = async (req, res) => {
     try {
@@ -32,3 +32,40 @@ exports.createWorkspace = async (req, res) => {
         });
     }
 }
+
+exports.addCollaborator = async (req, res) => {
+    try {
+        const { workspaceId, email } = req.body;
+        
+        const workspace = await Workspace.findById(workspaceId);
+        if (!workspace) return res.status(404).json({ success: false, message: "Workspace not found" });
+        
+        if (workspace.collaborators.some(collaborator => collaborator.userEmail == email)) {
+            return res.status(400).json({ success: false, message: "User is already a collaborator" });
+        }
+
+        authClient.GetUserByEmail({ email }, async (error, response) => {
+            if (error) {
+                console.error("gRPC error:", error);
+                return res.status(500).json({ success: false, message: "Error fetching user ID" });
+            }
+
+            if (!response || !response.userId) {
+                return res.status(404).json({ success: false, message: "User not found" });
+            }
+
+            const userId = response.userId;
+            const userEmail = response.userEmail;
+            const userAvatar = response.userAvatar;
+
+            workspace.collaborators.push({ userId, userEmail, userAvatar });
+            await workspace.save();
+
+            res.json({ success: true, message: "User added successfully", workspace });
+        });
+
+    } catch (error) {
+        console.error("Unexpected error:", error);
+        res.status(500).json({ success: false, message: error.message });
+    }
+};
