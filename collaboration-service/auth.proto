@@ -1,0 +1,17 @@
+syntax = 'proto3';
+
+package auth;
+
+service AuthService {
+    rpc GetUserByEmail (UseEmailRequest) returns (UserResponse);
+}
+
+message UseEmailRequest {
+    string email = 1;
+}
+
+message UserResponse {
+    string userId = 1;
+    string userEmail = 2;
+    string userAvatar = 3;
+}
