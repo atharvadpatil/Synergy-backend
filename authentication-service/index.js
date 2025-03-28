@@ -5,6 +5,8 @@ const dotenv = require("dotenv");
 const connectDB = require("./config/db");
 const authRoutes = require("./routes/auth");
 const cookieParser = require("cookie-parser");
+const gRPCServer = require('./grpcServer');
+const grpc = require("@grpc/grpc-js");
 
 dotenv.config();
 
@@ -34,4 +36,10 @@ app.use("/api/auth", authRoutes);
 //start the server
 app.listen(PORT, () => {
     console.log(`Authentication Service is running on http://localhost:${PORT}`);
+});
+
+// Start gRPC server
+// "0.0.0.0:50051" -> listen on all available network interfaces on port 50051
+gRPCServer.bindAsync("0.0.0.0:50051", grpc.ServerCredentials.createInsecure(), () => {
+  console.log("Auth Service gRPC Server running on port 50051");
 });
