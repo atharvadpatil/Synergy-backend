@@ -4,8 +4,7 @@ const authClient = require("../grpcClient");
 
 exports.createWorkspace = async (req, res) => {
     try {
-        const name = req.body.name;
-        const avatar = req.body.avatar;
+        const { name, avatar} = req.body;
         const uniqueLink = nanoid(10);
         const workspace = new Workspace({
             name,
@@ -28,14 +27,13 @@ exports.createWorkspace = async (req, res) => {
         res.status(500).json({
             success: false,
             message: 'Server error',
-            error: error.message
         });
     }
 }
 
 exports.addCollaborator = async (req, res) => {
     try {
-        const { workspaceId, email } = req.body;
+        const { workspaceId, email, role } = req.body;
         
         const workspace = await Workspace.findById(workspaceId);
         if (!workspace) return res.status(404).json({ success: false, message: "Workspace not found" });
@@ -58,14 +56,13 @@ exports.addCollaborator = async (req, res) => {
             const userEmail = response.userEmail;
             const userAvatar = response.userAvatar;
 
-            workspace.collaborators.push({ userId, userEmail, userAvatar });
+            workspace.collaborators.push({ userId, userEmail, userAvatar, role });
             await workspace.save();
 
             res.json({ success: true, message: "User added successfully", workspace });
         });
 
     } catch (error) {
-        console.error("Unexpected error:", error);
-        res.status(500).json({ success: false, message: error.message });
+        res.status(500).json({ success: false, message: 'Server error' });
     }
 };
