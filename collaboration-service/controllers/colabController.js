@@ -104,3 +104,24 @@ exports.getWorkspaceById = async (req, res) => {
         });
     }
 }
+
+exports.getUserWorkspaces = async (req, res) => {
+    try {
+        //find workspaces where user is owner
+        const ownedWorkspaces = await Workspace.find({ownerId: req.user.id})
+                                                .sort({ updatedAt: -1 })
+                                                .select('name uniqueLink collaborators -_id');
+    
+        const sharedWorkspaces = await Workspace.find({'collaborators.userId': req.user.id})
+                                                .sort({ updatedAt: -1 })
+                                                .select('name uniqueLink collaborators -_id');
+
+        res.json({ success: true, ownedWorkspaces, sharedWorkspaces });
+
+    } catch (error) {
+        res.status(500).json({
+            success: false,
+            message: 'Server Error',
+        });
+    }
+}

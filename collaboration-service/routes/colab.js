@@ -1,8 +1,9 @@
 const express = require("express");
-const { createWorkspace, addCollaborator, getWorkspaceById } = require('../controllers/colabController');
+const { createWorkspace, addCollaborator, getWorkspaceById, getUserWorkspaces } = require('../controllers/colabController');
 
 const router = express.Router();
 
+router.get("/", getUserWorkspaces);
 router.post("/create", createWorkspace);
 router.post("/add", addCollaborator);
 router.get("/:uid", getWorkspaceById);
