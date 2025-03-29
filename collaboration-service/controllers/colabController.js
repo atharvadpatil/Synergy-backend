@@ -37,6 +37,10 @@ exports.addCollaborator = async (req, res) => {
         
         const workspace = await Workspace.findById(workspaceId);
         if (!workspace) return res.status(404).json({ success: false, message: "Workspace not found" });
+
+        if(workspace.ownerId!==req.user.id){
+            return res.status(403).json({success: false, message: "Access denied"})
+        }
         
         if (workspace.collaborators.some(collaborator => collaborator.userEmail == email)) {
             return res.status(400).json({ success: false, message: "User is already a collaborator" });
