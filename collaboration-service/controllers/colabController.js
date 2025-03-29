@@ -66,3 +66,37 @@ exports.addCollaborator = async (req, res) => {
         res.status(500).json({ success: false, message: 'Server error' });
     }
 };
+
+exports.getWorkspaceById = async (req, res) => {
+    try {
+        const uniqueLink = req.params.uid;
+        let workspace;
+
+        workspace = await Workspace.findOne({uniqueLink: uniqueLink});
+
+        if(!workspace){
+            return res.status(404).json({
+                success: false,
+                message: "Invalide workspace"
+            })
+        }
+
+        //check user's access
+        const isCollaborator = workspace.collaborators.some(collab=>collab.userId === req.user.id);
+
+        if(!isCollaborator){
+            return res.status(403).json({
+                success: false,
+                message: "Access denied"
+            })
+        }
+
+        res.json({ success: true, workspace });
+
+    } catch (error) {
+        res.status(500).json({
+            success: false,
+            message: 'Server Error',
+        });
+    }
+}
