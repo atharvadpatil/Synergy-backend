@@ -12,6 +12,7 @@ message UseEmailRequest {
 
 message UserResponse {
     string userId = 1;
-    string userEmail = 2;
-    string userAvatar = 3;
+    string userName = 2;
+    string userEmail = 3;
+    string userAvatar = 4;
 }

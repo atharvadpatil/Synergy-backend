@@ -4,15 +4,16 @@ const authClient = require("../grpcClient");
 
 exports.createWorkspace = async (req, res) => {
     try {
-        const { name, avatar} = req.body;
+        const { name, avatar, userName} = req.body;
         const uniqueLink = nanoid(10);
         const workspace = new Workspace({
             name,
             ownerId: req.user.id,
             ownerEmail: req.user.email,
+            ownerName: userName,
             uniqueLink,
             collaborators: [
-                { userId: req.user.id, userEmail: req.user.email, userAvatar: avatar, role: 'Editor' }
+                { userId: req.user.id, userName: userName, userEmail: req.user.email, userAvatar: avatar, role: 'Editor' }
             ]
         });
 
@@ -57,10 +58,11 @@ exports.addCollaborator = async (req, res) => {
             }
 
             const userId = response.userId;
+            const userName = response.userName;
             const userEmail = response.userEmail;
             const userAvatar = response.userAvatar;
 
-            workspace.collaborators.push({ userId, userEmail, userAvatar, role });
+            workspace.collaborators.push({ userId, userName, userEmail, userAvatar, role });
             await workspace.save();
 
             res.json({ success: true, message: "User added successfully", workspace });
@@ -110,11 +112,11 @@ exports.getUserWorkspaces = async (req, res) => {
         //find workspaces where user is owner
         const ownedWorkspaces = await Workspace.find({ownerId: req.user.id})
                                                 .sort({ updatedAt: -1 })
-                                                .select('name uniqueLink collaborators -_id');
+                                                .select('name ownerName uniqueLink collaborators -_id');
     
         const sharedWorkspaces = await Workspace.find({'collaborators.userId': req.user.id})
                                                 .sort({ updatedAt: -1 })
-                                                .select('name uniqueLink collaborators -_id');
+                                                .select('name ownerName uniqueLink collaborators -_id');
 
         res.json({ success: true, ownedWorkspaces, sharedWorkspaces });
 
