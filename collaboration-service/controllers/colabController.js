@@ -112,11 +112,17 @@ exports.getUserWorkspaces = async (req, res) => {
         //find workspaces where user is owner
         const ownedWorkspaces = await Workspace.find({ownerId: req.user.id})
                                                 .sort({ updatedAt: -1 })
-                                                .select('name ownerName uniqueLink collaborators -_id');
+                                                .select('name ownerName uniqueLink collaborators updatedAt -_id');
     
-        const sharedWorkspaces = await Workspace.find({'collaborators.userId': req.user.id})
+        const sharedWorkspaces = await Workspace.find({
+                                                        $and: [
+                                                            { owner: !req.user.id },
+                                                            {'collaborators.userId': req.user.id}
+                                                        ]
+                                                    }
+                                                )
                                                 .sort({ updatedAt: -1 })
-                                                .select('name ownerName uniqueLink collaborators -_id');
+                                                .select('name ownerName uniqueLink collaborators updatedAt -_id');
 
         res.json({ success: true, ownedWorkspaces, sharedWorkspaces });
 
