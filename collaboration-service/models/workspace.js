@@ -13,9 +13,8 @@ const workspaceSchema = mongoose.Schema({
         userAvatar: { type: String },
         role: { type: String, enum: ['Editor', 'Viewer'], default: 'Editor' },
     }],
-    createdAt: { type: Date, default: Date.now },
-    updatedAt: { type: Date, default: Date.now }
-})
+    
+}, {timestamps: true})
 
 const Workspace = mongoose.model("Workspace", workspaceSchema);
 
