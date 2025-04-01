@@ -20,10 +20,11 @@ server.addService(authProto.AuthService.service, {
       const { email } = req.request;
       const user = await User.findOne({ email });
 
-      if (!user) return res(null, { userId: "", userEmail: "", userAvatar: "" });  
+      if (!user) return res(null, { userId: "", userName: "", userEmail: "", userAvatar: "" });  
 
       res(null, { 
-        userId: user.id, 
+        userId: user.id,
+        userName: user.name, 
         userEmail: user.email, 
         userAvatar: user.avatar
       });
