@@ -65,7 +65,7 @@ exports.addCollaborator = async (req, res) => {
             workspace.collaborators.push({ userId, userName, userEmail, userAvatar, role });
             await workspace.save();
 
-            res.json({ success: true, message: "User added successfully", workspace });
+            res.json({ success: true, message: "User added successfully" });
         });
 
     } catch (error) {
