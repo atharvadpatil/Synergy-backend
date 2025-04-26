@@ -1,0 +1,20 @@
+{
+  "name": "code-exec-service",
+  "version": "1.0.0",
+  "main": "index.js",
+  "scripts": {
+    "dev": "nodemon index",
+    "start": "node index"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "description": "",
+  "dependencies": {
+    "body-parser": "^2.2.0",
+    "express": "^5.1.0",
+    "fs-extra": "^11.3.0",
+    "nodemon": "^3.1.10",
+    "uuid": "^11.1.0"
+  }
+}
