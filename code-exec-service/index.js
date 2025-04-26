@@ -2,6 +2,7 @@ const express = require('express');
 const cors = require("cors");
 const dotenv = require("dotenv");
 dotenv.config();
+const validateToken = require('./middlewares/validateToken');
 
 
 //Initialize app
@@ -13,6 +14,7 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }))
+app.use(validateToken);
 
 
 app.listen(PORT, ()=>{
