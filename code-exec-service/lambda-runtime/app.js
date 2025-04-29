@@ -67,15 +67,15 @@ async function executeCode(tempDir, input, compileCommand, runCommand) {
                 if (runErr && runErr.killed) {
                     return resolve({
                         success: false,
-                        stage: 'execution',
+                        stage: 'Run Time',
                         output: '',
-                        error: 'Execution timed out'
+                        error: runStderr || 'Execution timed out'
                     });
                 }
 
                 resolve({
                     success: !runErr,
-                    stage: 'execution',
+                    stage: 'Run Time',
                     output: runStdout,
                     error: runStderr
                 });
@@ -92,7 +92,7 @@ async function executeCode(tempDir, input, compileCommand, runCommand) {
                 if (compileErr) {
                     return resolve({
                         success: false,
-                        stage: 'compilation',
+                        stage: 'Compilation',
                         output: '',
                         error: compileStderr || 'Compilation failed'
                     });

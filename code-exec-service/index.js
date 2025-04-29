@@ -35,9 +35,8 @@ app.use('/api/code/execute', async (req, res)=>{
         const response = await axios.post('http://localhost:9000/2015-03-31/functions/function/invocations', {
           body: body
         })
-        res.json(response.data);
+        res.json({success: true, response:response.data});
     } catch (error) {
-        console.error(`Execution error: ${error.message}`);
         res.status(500).json({ success:false, message: error.message });
     }
 })
