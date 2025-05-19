@@ -13,8 +13,24 @@ const workspaceSchema = mongoose.Schema({
         userAvatar: { type: String },
         role: { type: String, enum: ['Editor', 'Viewer'], default: 'Editor' },
     }],
-    
-}, {timestamps: true})
+    codeSnapshot: {
+        content: { type: String, default: '' },
+        language: { type: String, default: '' },
+        input: { type: String, default: '' },
+        output: { type: String, default: '' }
+    },
+    notesSnapshot: {
+        content: { type: String, default: '' }
+    },
+    drawingSnapshot: {
+        rectangles: { type: Array, default: [] },
+        scribbles: { type: Array, default: [] },
+        lines: { type: Array, default: [] },
+        circles: { type: Array, default: [] },
+        arrows: { type: Array, default: [] }
+    },
+
+}, { timestamps: true })
 
 const Workspace = mongoose.model("Workspace", workspaceSchema);
 
