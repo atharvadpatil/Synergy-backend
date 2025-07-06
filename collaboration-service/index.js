@@ -88,7 +88,7 @@ wss.on('connection', (conn, req)=>{
     if(docType !== 'notes'){
         const ydoc = getYDoc(docName);
         console.log(`YJS document ready: ${docName}`); 
-        
+
         activeDocuments.set(docName, ydoc);
 
         conn.on('close', () => {
@@ -103,6 +103,14 @@ wss.on('connection', (conn, req)=>{
         });
     }
 });
+
+// Periodic snapshot saving (every 5 minutes for all active documents)
+setInterval(() => {
+    console.log(`Performing periodic snapshot for ${activeDocuments.size} active documents`);
+    activeDocuments.forEach((ydoc, docName) => {
+        saveSnapshot(docName, ydoc);
+    });
+}, 300000); // 5 minutes
 
 
 //start the server
