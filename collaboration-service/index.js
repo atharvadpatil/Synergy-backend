@@ -112,6 +112,21 @@ setInterval(() => {
     });
 }, 300000); // 5 minutes
 
+// Graceful shutdown
+process.on('SIGINT', async () => {
+    console.log('Shutting down server...');
+    
+    // Save all active documents before shutdown
+    const savePromises = [];
+    activeDocuments.forEach((ydoc, docName) => {
+        savePromises.push(saveSnapshot(docName, ydoc));
+    });
+    
+    await Promise.all(savePromises);
+    console.log('All snapshots saved. Server shutting down.');
+    process.exit(0);
+});
+
 
 //start the server
 server.listen(PORT, () => {
