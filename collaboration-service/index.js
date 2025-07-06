@@ -78,6 +78,30 @@ async function saveSnapshot(docName, ydoc) {
     }
 }
 
+function updateYjs(ydoc, type, key, value){
+    ydoc.getMap(type).get(key).delete(0, ydoc.getMap(type).get(key).length);
+    ydoc.getMap(type).get(key).insert(0, value);
+}
+
+async function updateYDocFromDB(docName, ydoc) {
+    const workspace = await Workspace.findOne({ uniqueLink: docName });
+    if (!workspace) {
+        console.error('Workspace not found:', docName);
+        return;
+    }
+    updateYjs(ydoc, 'code', 'content', workspace.codeSnapshot.content);
+    updateYjs(ydoc, 'code', 'language', workspace.codeSnapshot.language);
+    updateYjs(ydoc, 'code', 'input', workspace.codeSnapshot.input);
+    updateYjs(ydoc, 'code', 'output', workspace.codeSnapshot.output);
+
+    updateYjs(ydoc, 'drawing', 'rectangles', workspace.drawingSnapshot.rectangles);
+    updateYjs(ydoc, 'drawing', 'scribbles', workspace.drawingSnapshot.scribbles);
+    updateYjs(ydoc, 'drawing', 'lines', workspace.drawingSnapshot.lines);
+    updateYjs(ydoc, 'drawing', 'circles', workspace.drawingSnapshot.circles);
+    updateYjs(ydoc, 'drawing', 'arrows', workspace.drawingSnapshot.arrows);
+}
+
+// websocket server with yjs
 const wss = new WebSocket.Server({server});
 wss.on('connection', (conn, req)=>{
     const docName = req.url.slice(11);
@@ -90,7 +114,15 @@ wss.on('connection', (conn, req)=>{
         console.log(`YJS document ready: ${docName}`); 
 
         activeDocuments.set(docName, ydoc);
+        
+        if(Array.from(ydoc.awareness.getStates().entries()).length===0){
+            console.log('Fetching data from DB');
+            setTimeout(()=>{
+                updateYDocFromDB(docName, ydoc);
+            }, 100)
+        }
 
+        
         conn.on('close', () => {
             console.log(`WebSocket connection closed for document: ${docName}`);
             
