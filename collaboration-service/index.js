@@ -10,6 +10,7 @@ const http = require('http');
 const { WebSocket } = require('ws');
 const { setupWSConnection, getYDoc } = require('@y/websocket-server/utils');
 const Workspace = require('./models/workspace');
+const Y = require('yjs');
 // Connect to MongoDB
 connectDB();
 
@@ -78,6 +79,35 @@ async function saveSnapshot(docName, ydoc) {
     }
 }
 
+async function saveNotesSnapshot(workspaceId, ydoc){
+    try {
+        console.log(`Saving snapshot for document: ${workspaceId}-notes`);
+        const workspace = await Workspace.findOne({ uniqueLink: workspaceId });
+        if (!workspace) {
+            console.error('Workspace not found:', `${workspaceId}-notes`);
+            return;
+        }
+
+        const update = Y.encodeStateAsUpdate(ydoc);
+
+        let updateObj = {};
+
+        updateObj = {
+            'notesSnapshot.content': Buffer.from(update)
+        }
+
+        await Workspace.findOneAndUpdate(
+            { uniqueLink: workspaceId },
+            { $set: updateObj },
+            { new: true }
+        );
+        console.log(`Snapshot saved successfully for ${workspaceId}-notes`);  
+    } catch (error) {
+        console.error('Error saving snapshot:', error);
+    }
+    
+} 
+
 function updateYjs(ydoc, type, key, value){
     ydoc.getMap(type).get(key).delete(0, ydoc.getMap(type).get(key).length);
     ydoc.getMap(type).get(key).insert(0, value);
@@ -101,6 +131,18 @@ async function updateYDocFromDB(docName, ydoc) {
     updateYjs(ydoc, 'drawing', 'arrows', workspace.drawingSnapshot.arrows);
 }
 
+async function updateNoteYDocFromDB(workspaceId, ydoc) {
+    const workspace = await Workspace.findOne({ uniqueLink: workspaceId });
+    if (!workspace) {
+        console.error('Workspace not found:', `${workspaceId}-notes`);
+        return;
+    }
+
+    if (workspace.notesSnapshot?.content) {
+        Y.applyUpdate(ydoc, new Uint8Array(workspace.notesSnapshot.content));
+    }
+}
+
 // websocket server with yjs
 const wss = new WebSocket.Server({server});
 wss.on('connection', (conn, req)=>{
@@ -108,13 +150,10 @@ wss.on('connection', (conn, req)=>{
     setupWSConnection(conn, req, {docName: docName});
 
     const [workspaceId, docType] = docName.split('-');
-
+    const ydoc = getYDoc(docName);
+    console.log(`YJS document ready: ${docName}`);
+    activeDocuments.set(docName, ydoc);
     if(docType !== 'notes'){
-        const ydoc = getYDoc(docName);
-        console.log(`YJS document ready: ${docName}`); 
-
-        activeDocuments.set(docName, ydoc);
-        
         if(Array.from(ydoc.awareness.getStates().entries()).length===0){
             console.log('Fetching data from DB');
             setTimeout(()=>{
@@ -122,14 +161,32 @@ wss.on('connection', (conn, req)=>{
             }, 100)
         }
 
-        
         conn.on('close', () => {
             console.log(`WebSocket connection closed for document: ${docName}`);
             
-            // Save final snapshot before cleanup
+            // Save snapshot before cleanup
             const ydoc = activeDocuments.get(docName);
             if (ydoc) {
                 saveSnapshot(docName, ydoc);
+            }
+            activeDocuments.delete(docName);
+        });
+    }
+    else{
+        if(Array.from(ydoc.awareness.getStates().entries()).length===0){
+            console.log('Fetching data from DB for notes');
+            setTimeout(()=>{
+                updateNoteYDocFromDB(workspaceId, ydoc);
+            }, 100)
+        }
+
+        conn.on('close', () => {
+            console.log(`WebSocket connection closed for document: ${docName}`);
+            
+            // Save snapshot before cleanup
+            const ydoc = activeDocuments.get(docName);
+            if (ydoc) {
+                saveNotesSnapshot(workspaceId, ydoc);
             }
             activeDocuments.delete(docName);
         });

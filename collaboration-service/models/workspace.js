@@ -20,7 +20,7 @@ const workspaceSchema = mongoose.Schema({
         output: { type: String, default: '' }
     },
     notesSnapshot: {
-        content: { type: String, default: '' }
+        content: { type: Buffer }
     },
     drawingSnapshot: {
         rectangles: { type: Array, default: [] },
